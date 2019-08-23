@@ -166,14 +166,26 @@ namespace {
 
         function mysql_query($query, \mysqli $link = null)
         {
-            return mysqli_query(\Dshafik\MySQL::getConnection($link), $query);
+            $result = mysqli_query(\Dshafik\MySQL::getConnection($link), $query);
+            if (($result === TRUE) || ($result === FALSE)) {
+                return $result;
+            }
+            $id = spl_object_hash($result);
+            \Dshafik\MySQL::$thequeries[$id] = $result;
+            return $id;
         }
 
         function mysql_unbuffered_query($query, \mysqli $link = null)
         {
             $link = \Dshafik\MySQL::getConnection($link);
             if (mysqli_real_query($link, $query)) {
-                return mysqli_use_result($link);
+                $result = mysqli_use_result($link);
+                if (($result === TRUE) || ($result === FALSE)) {
+                    return $result;
+                }
+                $id = spl_object_hash($result);
+                \Dshafik\MySQL::$thequeries[$id] = $result;
+                return $id;
             }
 
             return false;
@@ -212,7 +224,8 @@ namespace {
                 mysqli_real_escape_string($link, $tableName)
             );
 
-            $result = mysql_query($query, $link);
+            $id = mysql_query($query, $link);
+            $result = \Dshafik\MySQL::$thequeries[$id];
 
             if ($result instanceof \mysqli_result) {
                 $result->table = $tableName;
@@ -252,6 +265,7 @@ namespace {
 
         function mysql_result($result, $row, $field = 0)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -309,6 +323,7 @@ namespace {
 
         function mysql_num_rows($result)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -324,6 +339,7 @@ namespace {
 
         function mysql_num_fields($result)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -335,6 +351,7 @@ namespace {
         function mysql_fetch_row($result)
         {
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
+            $result = \Dshafik\MySQL::$thequeries[$result];
                 // @codeCoverageIgnoreStart
                 return false;
                 // @codeCoverageIgnoreEnd
@@ -344,6 +361,7 @@ namespace {
 
         function mysql_fetch_array($result, $resultType = MYSQL_BOTH)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -354,6 +372,7 @@ namespace {
 
         function mysql_fetch_assoc($result) /* : array|null */
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -365,6 +384,7 @@ namespace {
 
         function mysql_fetch_object($result, $class = null, array $params = array()) /* : object|null */
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -382,6 +402,7 @@ namespace {
 
         function mysql_data_seek($result, $offset)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -392,6 +413,7 @@ namespace {
 
         function mysql_fetch_lengths($result) /* : array|*/
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -402,6 +424,7 @@ namespace {
 
         function mysql_fetch_field($result) /* : object|*/
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -412,6 +435,7 @@ namespace {
 
         function mysql_field_seek($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -420,18 +444,21 @@ namespace {
             return mysqli_field_seek($result, $field);
         }
 
-        function mysql_free_result($result)
+        function mysql_free_result($id)
         {
+            $result = \Dshafik\MySQL::$thequeries[$id];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
                 // @codeCoverageIgnoreEnd
             }
+            unset(\Dshafik\MySQL::$thequeries[$id]);
             return mysqli_free_result($result);
         }
 
         function mysql_field_name($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -442,6 +469,7 @@ namespace {
 
         function mysql_field_table($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -452,6 +480,7 @@ namespace {
 
         function mysql_field_len($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -462,6 +491,7 @@ namespace {
 
         function mysql_field_type($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -472,6 +502,7 @@ namespace {
 
         function mysql_field_flags($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -553,6 +584,7 @@ namespace {
 
         function mysql_db_name($result, $row, $field = 0)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -565,6 +597,7 @@ namespace {
 
         function mysql_tablename($result, $row)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             if (!\Dshafik\MySQL::checkValidResult($result, __FUNCTION__)) {
                 // @codeCoverageIgnoreStart
                 return false;
@@ -579,26 +612,31 @@ namespace {
 
         function mysql_fieldname($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_field_name($result, $field);
         }
 
         function mysql_fieldtable($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_field_table($result, $field);
         }
 
         function mysql_fieldlen($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_field_len($result, $field);
         }
 
         function mysql_fieldtype($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_field_type($result, $field);
         }
 
         function mysql_fieldflags($result, $field)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_field_flags($result, $field);
         }
 
@@ -609,16 +647,19 @@ namespace {
 
         function mysql_freeresult($result)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_free_result($result);
         }
 
         function mysql_numfields($result)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_num_fields($result);
         }
 
         function mysql_numrows($result)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_num_rows($result);
         }
 
@@ -639,11 +680,13 @@ namespace {
 
         function mysql_dbname($result, $row, $field = 0)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_db_name($result, $row, $field);
         }
 
         function mysql_table_name($result, $row)
         {
+            $result = \Dshafik\MySQL::$thequeries[$result];
             return mysql_tablename($result, $row);
         }
     }
@@ -655,6 +698,7 @@ namespace Dshafik {
     {
         public static $last_connection = null;
         public static $connections = array();
+        public static $thequeries = array();
 
         public static function getConnection($link = null, $func = null)
         {
@@ -676,6 +720,7 @@ namespace Dshafik {
 
         public static function mysqlFieldInfo(\mysqli_result $result, $field, $what)
         {
+            $result = $thequeries[$result];
             try {
                 $field = mysqli_fetch_field_direct($result, $field);
             } catch (\Exception $e) {
